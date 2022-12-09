@@ -3,8 +3,6 @@ const fs = require('fs')
 // just  pass a length and what to draw where...
 // draw: [{s: [1, 0]}, {T: [5, 0]}]
 const printSimulation = (length, draw) => {
-  console.log('length', length)
-  console.log('draw', draw)
   let array2d = new Array(length[1]).fill(null).map(() => new Array(length[0]).fill('.'))
   draw?.forEach(e => {
     let [x, y] = Object.values(e)[0]
@@ -64,7 +62,6 @@ const main = (data) => {
   // [minXCoord, minYCoord, maxXCoord, maxYCoord] inclusive
   let length = [0,0,0,0]    
   const computeLength = ([x,y]) => {
-    console.log('new X coord', [x, y])
 
     // if X overflows
     if (state.H[0] < length[0] && state.H[0] < 0) {
@@ -79,9 +76,9 @@ const main = (data) => {
     } else if (state.H[1] > length[3] && state.H[1] > 0) {
       length[3] = state.H[1]
     }
-    console.log('legnth ', length)
   }
 
+  let tCoords = [];
   const moveT = () => {
     // check the difference between H and T
     let x = state.H[0] - state.T[0]
@@ -104,7 +101,11 @@ const main = (data) => {
     let moveTx = x >= 2 ? 1 : (x <= -2 ? -1 : 0)
     let moveTy = y >= 2 ? 1 : (y <= -2 ? -1 : 0)
 
-    setState({T: [state.T[0] + moveTx, state.T[1] + moveTy]})
+    let newStateX = state.T[0] + moveTx;
+    let newStateY = state.T[1] + moveTy;
+
+    setState({T: [newStateX, newStateY]})
+    setTCoords([newStateX, newStateY])
   }
 
   // x y coord is difference between H - T
@@ -112,14 +113,27 @@ const main = (data) => {
     let moveTx = x > 0 ? 1 : (x < 0 ? -1 : 0)
     let moveTy = y > 0 ? 1 : (y < 0 ? -1 : 0)
 
-    setState({T: [state.T[0] + moveTx, state.T[1] + moveTy]})
+    let newStateX = state.T[0] + moveTx;
+    let newStateY = state.T[1] + moveTy;
+
+    setState({T: [newStateX, newStateY]})
+    setTCoords([newStateX, newStateY])
   }
 
-
+  const setTCoords  = (coords) => {
+    console.log('coords', coords)
+    let stringify = JSON.stringify(coords);
+  
+    if (tCoords.includes(stringify)) {
+      return;
+    }
+    tCoords.push(stringify);
+  }
   
   // ======= Initial Value ======= //
   // make s, T and H start at the beginning
   setState({s: [0, 0], T: [0, 0], H: [0, 0]})
+  setTCoords([0,0])
   printMessage('Initial State')
   prepareSTHAndPrint(length, state)
 
@@ -145,9 +159,12 @@ const main = (data) => {
       setState({H:  [x, y]})
       computeLength([x, y])
       moveT()
-      prepareSTHAndPrint(length, state)
+      // prepareSTHAndPrint(length, state)
     }
   }
+
+  // console.log('tCoords', tCoords)
+  console.log('tCoords.length', tCoords.length)
 }
 
 
@@ -163,16 +180,19 @@ const unitTesting = () => {
 
 // ################# Run the Code ################## //
 
-// const input = fs.readFileSync('./day9/given.txt', 'utf-8')
-// const data = input.split('\n')
+const input = fs.readFileSync('./day9/given.txt', 'utf-8')
+const data = input.split('\n')
 main(
-  ['R 1', 
-  'U 2', 
-  'L 1', 
-  'R 2',
-  'L 1',
-  'U 2',
-  'R 2',
-  'L 2',
-  'R 2'
-  ])
+  // ['R 1', 
+  // 'U 2', 
+  // 'L 1', 
+  // 'R 2',
+  // 'L 1',
+  // 'U 2',
+  // 'R 2',
+  // 'L 2',
+  // 'R 2'
+  // ]
+  data
+  )
+
