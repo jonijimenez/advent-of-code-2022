@@ -21,6 +21,7 @@ const printMessage = (message) => {
   console.log(`== ${message} ==`)
 }
 
+
 // ################# Main ################## //
 const main = (data, length, center) => {  
   const prepareSTHAndPrint = (sTH) => {
@@ -35,6 +36,40 @@ const main = (data, length, center) => {
       ...change
     }
   }
+
+  const moveT = () => {
+    // check the difference between H and T
+    let x = state.H[0] - state.T[0]
+    let y = state.H[1] - state.T[1]
+
+    // check if should move, if touching, don't move
+    if (Math.abs(x) < 2 && Math.abs(y) < 2) {
+      return
+    }
+
+    if (x === 0 || y === 0) {
+      moveTStraight(x, y)
+    } else {
+      moveTDiagonal(x, y)
+    }
+
+  }
+  // x y coord is difference between H - T
+  const moveTStraight = (x, y) => {
+    let moveTx = x >= 2 ? 1 : (x <= -2 ? -1 : 0)
+    let moveTy = y >= 2 ? 1 : (y <= -2 ? -1 : 0)
+
+    setState({T: [state.T[0] + moveTx, state.T[1] + moveTy]})
+  }
+
+  // x y coord is difference between H - T
+  const moveTDiagonal  = (x, y) => {
+    let moveTx = x > 0 ? 1 : (x < 0 ? -1 : 0)
+    let moveTy = y > 0 ? 1 : (y < 0 ? -1 : 0)
+
+    setState({T: [state.T[0] + moveTx, state.T[1] + moveTy]})
+  }
+
   
   // ======= Initial Value ======= //
   // make s, T and H start at the beginning
@@ -67,6 +102,7 @@ const main = (data, length, center) => {
       let y = state.H[1] + direction[1]
 
       setState({H:  [x, y]})
+      moveT()
       prepareSTHAndPrint(state)
     }
     
@@ -88,4 +124,15 @@ const unitTesting = () => {
 
 // const input = fs.readFileSync('./day9/given.txt', 'utf-8')
 // const data = input.split('\n')
-main(['R 1', 'U 2', 'L 1', 'R 2'], 11, [5, 5])
+main(
+  ['R 1', 
+  'U 2', 
+  'L 1', 
+  'R 2',
+  'L 1',
+  'U 2',
+  'R 2',
+  'L 2',
+  'R 2',
+  'U 2'
+  ], 11, [5, 5])
