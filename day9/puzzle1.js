@@ -3,7 +3,9 @@ const fs = require('fs')
 // just  pass a length and what to draw where...
 // draw: [{s: [1, 0]}, {T: [5, 0]}]
 const printSimulation = (length, draw) => {
-  let array2d = new Array(length).fill(null).map(() => new Array(length).fill('.'))
+  console.log('length', length)
+  console.log('draw', draw)
+  let array2d = new Array(length[1]).fill(null).map(() => new Array(length[0]).fill('.'))
   draw?.forEach(e => {
     let [x, y] = Object.values(e)[0]
     let value = Object.keys(e)[0]
@@ -21,12 +23,34 @@ const printMessage = (message) => {
   console.log(`== ${message} ==`)
 }
 
+// coords = {s: [0. 1], T: [-1, 2], H: [3, 4]}
+// this is next level shit ever 
+// potek 11:58pm na Dec 9, 2022. 8pm ako nagstart dito. What am I gaining for this?
+const transformCoordToArrayValue = (minX, maxY, coords) => {
+  let offsetX = 0 - minX;
+
+  let newCoords = JSON.parse(JSON.stringify(coords));
+
+  Object.keys(newCoords).forEach(e => {
+    let shouldbeY = newCoords[e][0] + offsetX
+    let shouldBeX = newCoords[e][1] >= 0 ? maxY - newCoords[e][1] : maxY + (-1 * newCoords[e][1])
+  
+    // we have to reverse the x and y 
+    newCoords[e][1] = shouldbeY
+    newCoords[e][0] = shouldBeX
+  })
+
+  return newCoords;
+}
+
+
 
 // ################# Main ################## //
-const main = (data, length, center) => {  
-  const prepareSTHAndPrint = (sTH) => {
-    let print = [{s: sTH.s}, {T: sTH.T}, {H: sTH.H}]
-    printSimulation(length, print)
+const main = (data) => {  
+  const prepareSTHAndPrint = (length, sTH) => {
+    let newCoords = transformCoordToArrayValue(length[0], length[3], sTH)
+    let print = [{s: newCoords.s}, {T: newCoords.T}, {H: newCoords.H}]
+    printSimulation([length[2] - length[0] + 1, length[3] - length[1] + 1], print)
   }
 
   let state = {}
@@ -35,6 +59,27 @@ const main = (data, length, center) => {
       ...state,
       ...change
     }
+  }
+
+  // [minXCoord, minYCoord, maxXCoord, maxYCoord] inclusive
+  let length = [0,0,0,0]    
+  const computeLength = ([x,y]) => {
+    console.log('new X coord', [x, y])
+
+    // if X overflows
+    if (state.H[0] < length[0] && state.H[0] < 0) {
+      length[0] = state.H[0]
+    } else if (state.H[0] > length[2] && state.H[0] > 0) {
+      length[2] = state.H[0]
+    }
+  
+    // if Y overflows
+    if (state.H[1] < length[1] && state.H[1] < 0) {
+      length[1] = state.H[1]
+    } else if (state.H[1] > length[3] && state.H[1] > 0) {
+      length[3] = state.H[1]
+    }
+    console.log('legnth ', length)
   }
 
   const moveT = () => {
@@ -70,24 +115,20 @@ const main = (data, length, center) => {
     setState({T: [state.T[0] + moveTx, state.T[1] + moveTy]})
   }
 
+
   
   // ======= Initial Value ======= //
   // make s, T and H start at the beginning
-  setState({s: [5, 5], T: [5,5], H: [5,5]})
+  setState({s: [0, 0], T: [0, 0], H: [0, 0]})
   printMessage('Initial State')
-  prepareSTHAndPrint(state)
+  prepareSTHAndPrint(length, state)
 
+  // make this acc to the quadrant coordinates
   let moves = {
-    R: [0,1],
-    L: [0, -1],
-    U: [-1, 0],
-    D: [1, 0]
-  }
-
-  let keepTrack = {
-    s: center,
-    T: center,
-    H: center
+    R: [1,0],
+    L: [-1, 0],
+    U: [0, 1],
+    D: [0, -1]
   }
 
   for (let i = 0; i < data.length; ++i) {
@@ -97,15 +138,15 @@ const main = (data, length, center) => {
     let numMoves = parseInt(move[1])
     for (let j = 0; j < numMoves; ++j) {
       // move the head
-      let direction = moves[move[0]]
+      let direction = moves[move[0]] // R L U D
       let x = state.H[0] + direction[0]
       let y = state.H[1] + direction[1]
 
       setState({H:  [x, y]})
+      computeLength([x, y])
       moveT()
-      prepareSTHAndPrint(state)
+      prepareSTHAndPrint(length, state)
     }
-    
   }
 }
 
@@ -133,6 +174,5 @@ main(
   'U 2',
   'R 2',
   'L 2',
-  'R 2',
-  'U 2'
-  ], 11, [5, 5])
+  'R 2'
+  ])
