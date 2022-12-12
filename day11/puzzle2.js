@@ -3,7 +3,6 @@ const fs = require('fs')
 const input = fs.readFileSync('./day11/sample.txt', 'utf-8')
 const data = input.split('\n')
 
-
 let monkeys = []
 let globalLCD = 1;
 
