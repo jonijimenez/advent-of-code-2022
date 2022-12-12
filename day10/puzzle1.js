@@ -1,4 +1,3 @@
-const { Sign } = require('crypto')
 const fs = require('fs')
 
 const input = fs.readFileSync('./day10/given.txt', 'utf-8')
